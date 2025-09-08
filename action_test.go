@@ -129,6 +129,11 @@ func TestActionWithRecoveryAndUpdateOperations(t *testing.T) {
 					DefaultMessage: "1",
 					MediaTypeID:    "0",
 				},
+				MessageUsers: zapi.ActionOperationMessageUsers{
+					{
+						UserID: "1", // Admin user ID is always 1 in Zabbix
+					},
+				},
 			},
 		},
 		RecoveryOperations: zapi.ActionRecoveryOperations{
