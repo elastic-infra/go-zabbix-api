@@ -100,3 +100,77 @@ func TestAction(t *testing.T) {
 
 	testDeleteAction(action, t)
 }
+
+func TestActionWithRecoveryAndUpdateOperations(t *testing.T) {
+	api := testGetAPI(t)
+
+	hostGroup := testCreateHostGroup(t)
+	defer testDeleteHostGroup(hostGroup, t)
+
+	// Create action with recovery and update operations
+	actions := zapi.Actions{{
+		Name:        "Test Action with Recovery Operations",
+		EventSource: zapi.TriggerEvent,
+		Status:      zapi.Enabled,
+		Filter: zapi.ActionFilter{
+			EvaluationType: zapi.And,
+			Conditions: zapi.ActionFilterConditions{
+				{
+					ConditionType: zapi.HostGroupCondition,
+					Operator:      zapi.Equals,
+					Value:         hostGroup.GroupID,
+				},
+			},
+		},
+		Operations: zapi.ActionOperations{
+			{
+				OperationType: zapi.SendMessage,
+				Message: &zapi.ActionOperationMessage{
+					DefaultMessage: "1",
+					MediaTypeID:    "0",
+					Subject:        "Problem",
+					Message:        "Test message",
+				},
+			},
+		},
+		RecoveryOperations: zapi.ActionRecoveryOperations{
+			{
+				OperationType: zapi.NotifyRecoveryAllInvolved,
+			},
+		},
+		UpdateOperations: zapi.ActionUpdateOperations{
+			{
+				OperationType: zapi.NotifyUpdateAllInvolved,
+			},
+		},
+	}}
+
+	err := api.ActionsCreate(actions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	action := &actions[0]
+	defer testDeleteAction(action, t)
+
+	// Test reading back the action
+	retrievedAction, err := api.ActionGetByID(action.ActionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify recovery operations
+	if len(retrievedAction.RecoveryOperations) != 1 {
+		t.Errorf("Expected 1 recovery operation, got %d", len(retrievedAction.RecoveryOperations))
+	}
+	if retrievedAction.RecoveryOperations[0].OperationType != zapi.NotifyRecoveryAllInvolved {
+		t.Errorf("Expected NotifyRecoveryAllInvolved, got %d", retrievedAction.RecoveryOperations[0].OperationType)
+	}
+
+	// Verify update operations
+	if len(retrievedAction.UpdateOperations) != 1 {
+		t.Errorf("Expected 1 update operation, got %d", len(retrievedAction.UpdateOperations))
+	}
+	if retrievedAction.UpdateOperations[0].OperationType != zapi.NotifyUpdateAllInvolved {
+		t.Errorf("Expected NotifyUpdateAllInvolved, got %d", retrievedAction.UpdateOperations[0].OperationType)
+	}
+}

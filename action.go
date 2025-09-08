@@ -148,8 +148,8 @@ type Action struct {
 
 	Filter             ActionFilter             `json:"filter,omitempty"`
 	Operations         ActionOperations         `json:"operations,omitempty"`
-	RecoveryOperations ActionRecoveryOperations `json:"recoveryOperations,omitempty"`
-	UpdateOperations   ActionUpdateOperations   `json:"acknowledgeOperations,omitempty"`
+	RecoveryOperations ActionRecoveryOperations `json:"recovery_operations,omitempty"`
+	UpdateOperations   ActionUpdateOperations   `json:"update_operations,omitempty"`
 }
 
 type Actions []Action
@@ -242,10 +242,10 @@ type ActionOperationHostGroups []ActionOperationHostGroup
 
 type ActionOperationMessage struct {
 	OperationID    string `json:"operationid,omitempty"`
-	DefaultMessage string `json:"default_msg"`
-	MediaTypeID    string `json:"mediatypeid"`
-	Message        string `json:"message"`
-	Subject        string `json:"subject"`
+	DefaultMessage string `json:"default_msg,omitempty"`
+	MediaTypeID    string `json:"mediatypeid,omitempty"`
+	Message        string `json:"message,omitempty"`
+	Subject        string `json:"subject,omitempty"`
 }
 
 type ActionOperationMessageUserGroup struct {
@@ -314,11 +314,11 @@ func (api *API) ActionsGet(params Params) (res Actions, err error) {
 // ActionGetByID Gets action by Id only if there is exactly 1 matching action.
 func (api *API) ActionGetByID(id string) (res *Action, err error) {
 	params := Params{
-		"actionids":                   id,
-		"selectFilter":                "extend",
-		"selectOperations":            "extend",
-		"selectRecoveryOperations":    "extend",
-		"selectAcknowledgeOperations": "extend",
+		"actionids":                id,
+		"selectFilter":             "extend",
+		"selectOperations":         "extend",
+		"selectRecoveryOperations": "extend",
+		"selectUpdateOperations":   "extend",
 	}
 	actions, err := api.ActionsGet(params)
 	if err != nil {
