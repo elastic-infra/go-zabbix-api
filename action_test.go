@@ -128,8 +128,6 @@ func TestActionWithRecoveryAndUpdateOperations(t *testing.T) {
 				Message: &zapi.ActionOperationMessage{
 					DefaultMessage: "1",
 					MediaTypeID:    "0",
-					Subject:        "Problem",
-					Message:        "Test message",
 				},
 			},
 		},
