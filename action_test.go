@@ -139,11 +139,17 @@ func TestActionWithRecoveryAndUpdateOperations(t *testing.T) {
 		RecoveryOperations: zapi.ActionRecoveryOperations{
 			{
 				OperationType: zapi.NotifyRecoveryAllInvolved,
+				Message: &zapi.ActionOperationMessage{
+					DefaultMessage: "1",
+				},
 			},
 		},
 		UpdateOperations: zapi.ActionUpdateOperations{
 			{
 				OperationType: zapi.NotifyUpdateAllInvolved,
+				Message: &zapi.ActionOperationMessage{
+					DefaultMessage: "1",
+				},
 			},
 		},
 	}}
