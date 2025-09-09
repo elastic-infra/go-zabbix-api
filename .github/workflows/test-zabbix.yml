@@ -61,13 +61,6 @@ jobs:
           TEST_ZABBIX_USER: Admin
           TEST_ZABBIX_PASSWORD: zabbix
         run: |
-          # Determine login parameter name based on Zabbix version
-          if [[ "${{ matrix.zabbix_version }}" =~ ^(6\.[4-9]|[7-9]\.) ]]; then
-            LOGIN_PARAM="username"
-          else
-            LOGIN_PARAM="user"
-          fi
-
           while true ; do
             output=$(curl -X POST -H 'Content-Type: application/json-rpc' -d '{"jsonrpc":"2.0","method":"user.login","params":{"${{ contains(fromJson('["6.0", "6.2"]'), matrix.zabbix_version) && 'user' || 'username' }}":"'$TEST_ZABBIX_USER'","password":"'$TEST_ZABBIX_PASSWORD'"},"id":1,"auth":null}' $TEST_ZABBIX_URL || echo error)
             echo $output
