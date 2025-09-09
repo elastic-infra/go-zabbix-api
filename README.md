@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/elastic-infra/go-zabbix-api"
 )
 
