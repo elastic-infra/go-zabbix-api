@@ -355,6 +355,167 @@ func (api *API) ActionsCreate(actions Actions) (err error) {
 	return
 }
 
+// Helper functions for cleaning operationid from slices
+func cleanCmdHostGroups(groups ActionOperationCommandHostGroups) ActionOperationCommandHostGroups {
+	if len(groups) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationCommandHostGroups, len(groups))
+	for i, g := range groups {
+		clean[i] = g
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanCmdHosts(hosts ActionOperationCommandHosts) ActionOperationCommandHosts {
+	if len(hosts) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationCommandHosts, len(hosts))
+	for i, h := range hosts {
+		clean[i] = h
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanConditions(conditions ActionOperationConditions) ActionOperationConditions {
+	if len(conditions) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationConditions, len(conditions))
+	for i, c := range conditions {
+		clean[i] = c
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanHostGroups(groups ActionOperationHostGroups) ActionOperationHostGroups {
+	if len(groups) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationHostGroups, len(groups))
+	for i, g := range groups {
+		clean[i] = g
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanMsgUserGroups(groups ActionOperationMessageUserGroups) ActionOperationMessageUserGroups {
+	if len(groups) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationMessageUserGroups, len(groups))
+	for i, g := range groups {
+		clean[i] = g
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanMsgUsers(users ActionOperationMessageUsers) ActionOperationMessageUsers {
+	if len(users) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationMessageUsers, len(users))
+	for i, u := range users {
+		clean[i] = u
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanTemplates(templates ActionOperationTemplates) ActionOperationTemplates {
+	if len(templates) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationTemplates, len(templates))
+	for i, t := range templates {
+		clean[i] = t
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+// cleanOperationComponents removes operationid from operation-related components
+func cleanOperationComponents(command *ActionOperationCommand,
+	commandHostGroups ActionOperationCommandHostGroups,
+	commandHosts ActionOperationCommandHosts,
+	conditions ActionOperationConditions,
+	hostGroups ActionOperationHostGroups,
+	message *ActionOperationMessage,
+	messageUserGroups ActionOperationMessageUserGroups,
+	messageUsers ActionOperationMessageUsers,
+	templates ActionOperationTemplates,
+	inventory *ActionOperationInventory) (
+	*ActionOperationCommand,
+	ActionOperationCommandHostGroups,
+	ActionOperationCommandHosts,
+	ActionOperationConditions,
+	ActionOperationHostGroups,
+	*ActionOperationMessage,
+	ActionOperationMessageUserGroups,
+	ActionOperationMessageUsers,
+	ActionOperationTemplates,
+	*ActionOperationInventory) {
+
+	// Clean command operationid
+	var cleanCommand *ActionOperationCommand
+	if command != nil {
+		cmd := *command
+		cmd.OperationID = ""
+		cleanCommand = &cmd
+	}
+
+	// Clean message operationid
+	var cleanMessage *ActionOperationMessage
+	if message != nil {
+		msg := *message
+		msg.OperationID = ""
+		cleanMessage = &msg
+	}
+
+	// Clean inventory operationid
+	var cleanInventory *ActionOperationInventory
+	if inventory != nil {
+		inv := *inventory
+		inv.OperationID = ""
+		cleanInventory = &inv
+	}
+
+	return cleanCommand, cleanCmdHostGroups(commandHostGroups), cleanCmdHosts(commandHosts),
+		cleanConditions(conditions), cleanHostGroups(hostGroups), cleanMessage,
+		cleanMsgUserGroups(messageUserGroups), cleanMsgUsers(messageUsers),
+		cleanTemplates(templates), cleanInventory
+}
+
+// cleanRecoveryOperationComponents removes operationid from recovery operation components (subset of regular operations)
+func cleanRecoveryOperationComponents(command *ActionOperationCommand,
+	commandHostGroups ActionOperationCommandHostGroups,
+	commandHosts ActionOperationCommandHosts,
+	message *ActionOperationMessage,
+	messageUserGroups ActionOperationMessageUserGroups,
+	messageUsers ActionOperationMessageUsers) (
+	*ActionOperationCommand,
+	ActionOperationCommandHostGroups,
+	ActionOperationCommandHosts,
+	*ActionOperationMessage,
+	ActionOperationMessageUserGroups,
+	ActionOperationMessageUsers) {
+
+	// Reuse the main function and discard unused return values
+	cleanCommand, cleanCmdHostGroups, cleanCmdHosts, _, _, cleanMessage,
+		cleanMsgUserGroups, cleanMsgUsers, _, _ := cleanOperationComponents(
+		command, commandHostGroups, commandHosts, nil, nil, message,
+		messageUserGroups, messageUsers, nil, nil)
+
+	return cleanCommand, cleanCmdHostGroups, cleanCmdHosts, cleanMessage,
+		cleanMsgUserGroups, cleanMsgUsers
+}
+
 // cleanOperationsForUpdate removes operationid and actionid from all operations to avoid "unexpected parameter" errors in Zabbix 6.0+
 func cleanOperationsForUpdate(actions Actions) Actions {
 	// Create a deep copy to avoid modifying the original
@@ -370,103 +531,14 @@ func cleanOperationsForUpdate(actions Actions) Actions {
 				cleanOp.OperationID = ""
 				cleanOp.ActionID = ""
 
-				// Clean command operationid
-				if cleanOp.Command != nil {
-					cmd := *cleanOp.Command
-					cmd.OperationID = ""
-					cleanOp.Command = &cmd
-				}
-
-				// Clean command host groups operationids
-				if len(cleanOp.CommandHostGroups) > 0 {
-					cleanCmdHostGroups := make(ActionOperationCommandHostGroups, len(cleanOp.CommandHostGroups))
-					for k, chg := range cleanOp.CommandHostGroups {
-						cleanCmdHostGroup := chg
-						cleanCmdHostGroup.OperationID = ""
-						cleanCmdHostGroups[k] = cleanCmdHostGroup
-					}
-					cleanOp.CommandHostGroups = cleanCmdHostGroups
-				}
-
-				// Clean command hosts operationids
-				if len(cleanOp.CommandHosts) > 0 {
-					cleanCmdHosts := make(ActionOperationCommandHosts, len(cleanOp.CommandHosts))
-					for k, ch := range cleanOp.CommandHosts {
-						cleanCmdHost := ch
-						cleanCmdHost.OperationID = ""
-						cleanCmdHosts[k] = cleanCmdHost
-					}
-					cleanOp.CommandHosts = cleanCmdHosts
-				}
-
-				// Clean conditions operationids
-				if len(cleanOp.Conditions) > 0 {
-					cleanConditions := make(ActionOperationConditions, len(cleanOp.Conditions))
-					for k, cond := range cleanOp.Conditions {
-						cleanCondition := cond
-						cleanCondition.OperationID = ""
-						cleanConditions[k] = cleanCondition
-					}
-					cleanOp.Conditions = cleanConditions
-				}
-
-				// Clean host groups operationids
-				if len(cleanOp.HostGroups) > 0 {
-					cleanHostGroups := make(ActionOperationHostGroups, len(cleanOp.HostGroups))
-					for k, hg := range cleanOp.HostGroups {
-						cleanHostGroup := hg
-						cleanHostGroup.OperationID = ""
-						cleanHostGroups[k] = cleanHostGroup
-					}
-					cleanOp.HostGroups = cleanHostGroups
-				}
-
-				// Clean message operationid
-				if cleanOp.Message != nil {
-					msg := *cleanOp.Message
-					msg.OperationID = ""
-					cleanOp.Message = &msg
-				}
-
-				// Clean message user groups operationids
-				if len(cleanOp.MessageUserGroups) > 0 {
-					cleanMsgUserGroups := make(ActionOperationMessageUserGroups, len(cleanOp.MessageUserGroups))
-					for k, mug := range cleanOp.MessageUserGroups {
-						cleanMsgUserGroup := mug
-						cleanMsgUserGroup.OperationID = ""
-						cleanMsgUserGroups[k] = cleanMsgUserGroup
-					}
-					cleanOp.MessageUserGroups = cleanMsgUserGroups
-				}
-
-				// Clean message users operationids
-				if len(cleanOp.MessageUsers) > 0 {
-					cleanMsgUsers := make(ActionOperationMessageUsers, len(cleanOp.MessageUsers))
-					for k, mu := range cleanOp.MessageUsers {
-						cleanMsgUser := mu
-						cleanMsgUser.OperationID = ""
-						cleanMsgUsers[k] = cleanMsgUser
-					}
-					cleanOp.MessageUsers = cleanMsgUsers
-				}
-
-				// Clean templates operationids
-				if len(cleanOp.Templates) > 0 {
-					cleanTemplates := make(ActionOperationTemplates, len(cleanOp.Templates))
-					for k, tmpl := range cleanOp.Templates {
-						cleanTemplate := tmpl
-						cleanTemplate.OperationID = ""
-						cleanTemplates[k] = cleanTemplate
-					}
-					cleanOp.Templates = cleanTemplates
-				}
-
-				// Clean inventory operationid
-				if cleanOp.Inventory != nil {
-					inv := *cleanOp.Inventory
-					inv.OperationID = ""
-					cleanOp.Inventory = &inv
-				}
+				// Use shared function to clean operation components
+				cleanOp.Command, cleanOp.CommandHostGroups, cleanOp.CommandHosts,
+					cleanOp.Conditions, cleanOp.HostGroups, cleanOp.Message,
+					cleanOp.MessageUserGroups, cleanOp.MessageUsers, cleanOp.Templates,
+					cleanOp.Inventory = cleanOperationComponents(
+					op.Command, op.CommandHostGroups, op.CommandHosts,
+					op.Conditions, op.HostGroups, op.Message,
+					op.MessageUserGroups, op.MessageUsers, op.Templates, op.Inventory)
 
 				cleanOps[j] = cleanOp
 			}
@@ -481,63 +553,11 @@ func cleanOperationsForUpdate(actions Actions) Actions {
 				cleanOp.OperationID = ""
 				cleanOp.ActionID = ""
 
-				// Clean command operationid
-				if cleanOp.Command != nil {
-					cmd := *cleanOp.Command
-					cmd.OperationID = ""
-					cleanOp.Command = &cmd
-				}
-
-				// Clean command host groups operationids
-				if len(cleanOp.CommandHostGroups) > 0 {
-					cleanCmdHostGroups := make(ActionOperationCommandHostGroups, len(cleanOp.CommandHostGroups))
-					for k, chg := range cleanOp.CommandHostGroups {
-						cleanCmdHostGroup := chg
-						cleanCmdHostGroup.OperationID = ""
-						cleanCmdHostGroups[k] = cleanCmdHostGroup
-					}
-					cleanOp.CommandHostGroups = cleanCmdHostGroups
-				}
-
-				// Clean command hosts operationids
-				if len(cleanOp.CommandHosts) > 0 {
-					cleanCmdHosts := make(ActionOperationCommandHosts, len(cleanOp.CommandHosts))
-					for k, ch := range cleanOp.CommandHosts {
-						cleanCmdHost := ch
-						cleanCmdHost.OperationID = ""
-						cleanCmdHosts[k] = cleanCmdHost
-					}
-					cleanOp.CommandHosts = cleanCmdHosts
-				}
-
-				// Clean message operationid
-				if cleanOp.Message != nil {
-					msg := *cleanOp.Message
-					msg.OperationID = ""
-					cleanOp.Message = &msg
-				}
-
-				// Clean message user groups operationids
-				if len(cleanOp.MessageUserGroups) > 0 {
-					cleanMsgUserGroups := make(ActionOperationMessageUserGroups, len(cleanOp.MessageUserGroups))
-					for k, mug := range cleanOp.MessageUserGroups {
-						cleanMsgUserGroup := mug
-						cleanMsgUserGroup.OperationID = ""
-						cleanMsgUserGroups[k] = cleanMsgUserGroup
-					}
-					cleanOp.MessageUserGroups = cleanMsgUserGroups
-				}
-
-				// Clean message users operationids
-				if len(cleanOp.MessageUsers) > 0 {
-					cleanMsgUsers := make(ActionOperationMessageUsers, len(cleanOp.MessageUsers))
-					for k, mu := range cleanOp.MessageUsers {
-						cleanMsgUser := mu
-						cleanMsgUser.OperationID = ""
-						cleanMsgUsers[k] = cleanMsgUser
-					}
-					cleanOp.MessageUsers = cleanMsgUsers
-				}
+				// Use shared function to clean recovery operation components
+				cleanOp.Command, cleanOp.CommandHostGroups, cleanOp.CommandHosts,
+					cleanOp.Message, cleanOp.MessageUserGroups, cleanOp.MessageUsers =
+					cleanRecoveryOperationComponents(op.Command, op.CommandHostGroups,
+						op.CommandHosts, op.Message, op.MessageUserGroups, op.MessageUsers)
 
 				cleanRecOps[j] = cleanOp
 			}
@@ -550,64 +570,13 @@ func cleanOperationsForUpdate(actions Actions) Actions {
 			for j, op := range action.UpdateOperations {
 				cleanOp := op
 				cleanOp.OperationID = ""
+				// Note: ActionUpdateOperation doesn't have ActionID field
 
-				// Clean command operationid
-				if cleanOp.Command != nil {
-					cmd := *cleanOp.Command
-					cmd.OperationID = ""
-					cleanOp.Command = &cmd
-				}
-
-				// Clean command host groups operationids
-				if len(cleanOp.CommandHostGroups) > 0 {
-					cleanCmdHostGroups := make(ActionOperationCommandHostGroups, len(cleanOp.CommandHostGroups))
-					for k, chg := range cleanOp.CommandHostGroups {
-						cleanCmdHostGroup := chg
-						cleanCmdHostGroup.OperationID = ""
-						cleanCmdHostGroups[k] = cleanCmdHostGroup
-					}
-					cleanOp.CommandHostGroups = cleanCmdHostGroups
-				}
-
-				// Clean command hosts operationids
-				if len(cleanOp.CommandHosts) > 0 {
-					cleanCmdHosts := make(ActionOperationCommandHosts, len(cleanOp.CommandHosts))
-					for k, ch := range cleanOp.CommandHosts {
-						cleanCmdHost := ch
-						cleanCmdHost.OperationID = ""
-						cleanCmdHosts[k] = cleanCmdHost
-					}
-					cleanOp.CommandHosts = cleanCmdHosts
-				}
-
-				// Clean message operationid
-				if cleanOp.Message != nil {
-					msg := *cleanOp.Message
-					msg.OperationID = ""
-					cleanOp.Message = &msg
-				}
-
-				// Clean message user groups operationids
-				if len(cleanOp.MessageUserGroups) > 0 {
-					cleanMsgUserGroups := make(ActionOperationMessageUserGroups, len(cleanOp.MessageUserGroups))
-					for k, mug := range cleanOp.MessageUserGroups {
-						cleanMsgUserGroup := mug
-						cleanMsgUserGroup.OperationID = ""
-						cleanMsgUserGroups[k] = cleanMsgUserGroup
-					}
-					cleanOp.MessageUserGroups = cleanMsgUserGroups
-				}
-
-				// Clean message users operationids
-				if len(cleanOp.MessageUsers) > 0 {
-					cleanMsgUsers := make(ActionOperationMessageUsers, len(cleanOp.MessageUsers))
-					for k, mu := range cleanOp.MessageUsers {
-						cleanMsgUser := mu
-						cleanMsgUser.OperationID = ""
-						cleanMsgUsers[k] = cleanMsgUser
-					}
-					cleanOp.MessageUsers = cleanMsgUsers
-				}
+				// Use shared function to clean update operation components
+				cleanOp.Command, cleanOp.CommandHostGroups, cleanOp.CommandHosts,
+					cleanOp.Message, cleanOp.MessageUserGroups, cleanOp.MessageUsers =
+					cleanRecoveryOperationComponents(op.Command, op.CommandHostGroups,
+						op.CommandHosts, op.Message, op.MessageUserGroups, op.MessageUsers)
 
 				cleanUpOps[j] = cleanOp
 			}
