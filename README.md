@@ -4,13 +4,13 @@
 
 This Go package provides access to Zabbix API.
 
-Tested on Zabbix 3.2, 3.4, 4.0, 4.2 and 4.4, but should work since 2.0 version.
+Tested on Zabbix 6.0, 6.2, 6.4.
 
 This package aims to support multiple zabbix resources from its API like trigger, application, host group, host, item, template..
 
 ## Install
 
-Install it: `go get github.com/claranet/go-zabbix-api`
+Install it: `go get github.com/elastic-infra/go-zabbix-api`
 
 ## Getting started
 
@@ -20,7 +20,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/claranet/go-zabbix-api"
+	"github.com/elastic-infra/go-zabbix-api"
 )
 
 func main() {
@@ -38,20 +38,6 @@ func main() {
 ```
 
 ## Tests
-
-### Considerations
-
-You should run tests before using this package.
-Zabbix API doesn't match documentation in few details, which are changing in patch releases. 
-
-Tests are not expected to be destructive, but you are advised to run them against not-production instance or at least make a backup.
-For a safer and more accurate testing we advice to run tests with following minimum versions which implements strict validation of valuemap for `get` method:
-
-- 4.0.13rc1 [6ead4fd7865](https://git.zabbix.com/projects/ZBX/repos/zabbix/commits/6ead4fd7865f24ba1246832caa867d33ee9773ba)
-- 4.2.7rc1 [a1d257bf6a3](https://git.zabbix.com/projects/ZBX/repos/zabbix/commits/a1d257bf6a3972e24a0044aa019d120eaf7a211a)
-- 4.4.0alpha3 [db94d75b4bf](https://git.zabbix.com/projects/ZBX/repos/zabbix/commits/db94d75b4bf5bfc72df3e01cd5fd4a57bc3784e3)
-
-For more information, please see issues [ZBX-3783](https://support.zabbix.com/browse/ZBX-3783) and [ZBX-3685](https://support.zabbix.com/browse/ZBX-3685)
 
 ### Run tests
 
