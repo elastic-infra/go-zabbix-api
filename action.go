@@ -355,10 +355,244 @@ func (api *API) ActionsCreate(actions Actions) (err error) {
 	return
 }
 
+// Helper functions for cleaning operationid from slices
+func cleanCmdHostGroups(groups ActionOperationCommandHostGroups) ActionOperationCommandHostGroups {
+	if len(groups) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationCommandHostGroups, len(groups))
+	for i, g := range groups {
+		clean[i] = g
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanCmdHosts(hosts ActionOperationCommandHosts) ActionOperationCommandHosts {
+	if len(hosts) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationCommandHosts, len(hosts))
+	for i, h := range hosts {
+		clean[i] = h
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanConditions(conditions ActionOperationConditions) ActionOperationConditions {
+	if len(conditions) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationConditions, len(conditions))
+	for i, c := range conditions {
+		clean[i] = c
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanHostGroups(groups ActionOperationHostGroups) ActionOperationHostGroups {
+	if len(groups) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationHostGroups, len(groups))
+	for i, g := range groups {
+		clean[i] = g
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanMsgUserGroups(groups ActionOperationMessageUserGroups) ActionOperationMessageUserGroups {
+	if len(groups) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationMessageUserGroups, len(groups))
+	for i, g := range groups {
+		clean[i] = g
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanMsgUsers(users ActionOperationMessageUsers) ActionOperationMessageUsers {
+	if len(users) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationMessageUsers, len(users))
+	for i, u := range users {
+		clean[i] = u
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+func cleanTemplates(templates ActionOperationTemplates) ActionOperationTemplates {
+	if len(templates) == 0 {
+		return nil
+	}
+	clean := make(ActionOperationTemplates, len(templates))
+	for i, t := range templates {
+		clean[i] = t
+		clean[i].OperationID = ""
+	}
+	return clean
+}
+
+// cleanOperationComponents removes operationid from operation-related components
+func cleanOperationComponents(command *ActionOperationCommand,
+	commandHostGroups ActionOperationCommandHostGroups,
+	commandHosts ActionOperationCommandHosts,
+	conditions ActionOperationConditions,
+	hostGroups ActionOperationHostGroups,
+	message *ActionOperationMessage,
+	messageUserGroups ActionOperationMessageUserGroups,
+	messageUsers ActionOperationMessageUsers,
+	templates ActionOperationTemplates,
+	inventory *ActionOperationInventory) (
+	*ActionOperationCommand,
+	ActionOperationCommandHostGroups,
+	ActionOperationCommandHosts,
+	ActionOperationConditions,
+	ActionOperationHostGroups,
+	*ActionOperationMessage,
+	ActionOperationMessageUserGroups,
+	ActionOperationMessageUsers,
+	ActionOperationTemplates,
+	*ActionOperationInventory) {
+
+	// Clean command operationid
+	var cleanCommand *ActionOperationCommand
+	if command != nil {
+		cmd := *command
+		cmd.OperationID = ""
+		cleanCommand = &cmd
+	}
+
+	// Clean message operationid
+	var cleanMessage *ActionOperationMessage
+	if message != nil {
+		msg := *message
+		msg.OperationID = ""
+		cleanMessage = &msg
+	}
+
+	// Clean inventory operationid
+	var cleanInventory *ActionOperationInventory
+	if inventory != nil {
+		inv := *inventory
+		inv.OperationID = ""
+		cleanInventory = &inv
+	}
+
+	return cleanCommand, cleanCmdHostGroups(commandHostGroups), cleanCmdHosts(commandHosts),
+		cleanConditions(conditions), cleanHostGroups(hostGroups), cleanMessage,
+		cleanMsgUserGroups(messageUserGroups), cleanMsgUsers(messageUsers),
+		cleanTemplates(templates), cleanInventory
+}
+
+// cleanRecoveryOperationComponents removes operationid from recovery operation components (subset of regular operations)
+func cleanRecoveryOperationComponents(command *ActionOperationCommand,
+	commandHostGroups ActionOperationCommandHostGroups,
+	commandHosts ActionOperationCommandHosts,
+	message *ActionOperationMessage,
+	messageUserGroups ActionOperationMessageUserGroups,
+	messageUsers ActionOperationMessageUsers) (
+	*ActionOperationCommand,
+	ActionOperationCommandHostGroups,
+	ActionOperationCommandHosts,
+	*ActionOperationMessage,
+	ActionOperationMessageUserGroups,
+	ActionOperationMessageUsers) {
+
+	// Reuse the main function and discard unused return values
+	cleanCommand, cleanCmdHostGroups, cleanCmdHosts, _, _, cleanMessage,
+		cleanMsgUserGroups, cleanMsgUsers, _, _ := cleanOperationComponents(
+		command, commandHostGroups, commandHosts, nil, nil, message,
+		messageUserGroups, messageUsers, nil, nil)
+
+	return cleanCommand, cleanCmdHostGroups, cleanCmdHosts, cleanMessage,
+		cleanMsgUserGroups, cleanMsgUsers
+}
+
+// cleanOperationsForUpdate removes operationid and actionid from all operations to avoid "unexpected parameter" errors in Zabbix 6.0+
+func cleanOperationsForUpdate(actions Actions) Actions {
+	// Create a deep copy to avoid modifying the original
+	cleanActions := make(Actions, len(actions))
+	for i, action := range actions {
+		cleanActions[i] = action
+
+		// Clean regular operations
+		if len(action.Operations) > 0 {
+			cleanOps := make(ActionOperations, len(action.Operations))
+			for j, op := range action.Operations {
+				cleanOp := op
+				cleanOp.OperationID = ""
+				cleanOp.ActionID = ""
+
+				// Use shared function to clean operation components
+				cleanOp.Command, cleanOp.CommandHostGroups, cleanOp.CommandHosts,
+					cleanOp.Conditions, cleanOp.HostGroups, cleanOp.Message,
+					cleanOp.MessageUserGroups, cleanOp.MessageUsers, cleanOp.Templates,
+					cleanOp.Inventory = cleanOperationComponents(
+					op.Command, op.CommandHostGroups, op.CommandHosts,
+					op.Conditions, op.HostGroups, op.Message,
+					op.MessageUserGroups, op.MessageUsers, op.Templates, op.Inventory)
+
+				cleanOps[j] = cleanOp
+			}
+			cleanActions[i].Operations = cleanOps
+		}
+
+		// Clean recovery operations
+		if len(action.RecoveryOperations) > 0 {
+			cleanRecOps := make(ActionRecoveryOperations, len(action.RecoveryOperations))
+			for j, op := range action.RecoveryOperations {
+				cleanOp := op
+				cleanOp.OperationID = ""
+				cleanOp.ActionID = ""
+
+				// Use shared function to clean recovery operation components
+				cleanOp.Command, cleanOp.CommandHostGroups, cleanOp.CommandHosts,
+					cleanOp.Message, cleanOp.MessageUserGroups, cleanOp.MessageUsers =
+					cleanRecoveryOperationComponents(op.Command, op.CommandHostGroups,
+						op.CommandHosts, op.Message, op.MessageUserGroups, op.MessageUsers)
+
+				cleanRecOps[j] = cleanOp
+			}
+			cleanActions[i].RecoveryOperations = cleanRecOps
+		}
+
+		// Clean update operations
+		if len(action.UpdateOperations) > 0 {
+			cleanUpOps := make(ActionUpdateOperations, len(action.UpdateOperations))
+			for j, op := range action.UpdateOperations {
+				cleanOp := op
+				cleanOp.OperationID = ""
+				// Note: ActionUpdateOperation doesn't have ActionID field
+
+				// Use shared function to clean update operation components
+				cleanOp.Command, cleanOp.CommandHostGroups, cleanOp.CommandHosts,
+					cleanOp.Message, cleanOp.MessageUserGroups, cleanOp.MessageUsers =
+					cleanRecoveryOperationComponents(op.Command, op.CommandHostGroups,
+						op.CommandHosts, op.Message, op.MessageUserGroups, op.MessageUsers)
+
+				cleanUpOps[j] = cleanOp
+			}
+			cleanActions[i].UpdateOperations = cleanUpOps
+		}
+	}
+
+	return cleanActions
+}
+
 // ActionsUpdate Wrapper for action.update
 // https://www.zabbix.com/documentation/4.0/manual/api/reference/action/update
 func (api *API) ActionsUpdate(actions Actions) (err error) {
-	_, err = api.CallWithError("action.update", actions)
+	// Remove operationid and actionid from all operations to avoid "unexpected parameter" errors in Zabbix 6.0+
+	cleanActions := cleanOperationsForUpdate(actions)
+	_, err = api.CallWithError("action.update", cleanActions)
 	return
 }
 
