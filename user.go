@@ -25,28 +25,29 @@ const (
 // User represent Zabbix user object
 // https://www.zabbix.com/documentation/current/manual/api/reference/user/object
 type User struct {
-	UserID          string `json:"userid,omitempty"`
-	Username        string `json:"username,omitempty"`
-	Name            string `json:"name,omitempty"`
-	Surname         string `json:"surname,omitempty"`
-	Password        string `json:"passwd,omitempty"`
-	CurrentPassword string `json:"current_passwd,omitempty"`
-	Url             string `json:"url,omitempty"`
-	Autologin       int    `json:"autologin,string,omitempty"`
-	Autologout      string `json:"autologout,omitempty"`
-	Lang            string `json:"lang,omitempty"`
-	Refresh         string `json:"refresh,omitempty"`
-	Theme           string `json:"theme,omitempty"`
-	AttemptFailed   int    `json:"attempt_failed,string,omitempty"`
-	AttemptIP       string `json:"attempt_ip,omitempty"`
-	AttemptClock    int    `json:"attempt_clock,string,omitempty"`
-	RowsPerPage     int    `json:"rows_per_page,string,omitempty"`
-	Timezone        string `json:"timezone,omitempty"`
-	RoleID          string `json:"roleid,omitempty"`
-	UserDirectoryID string `json:"userdirectoryid,omitempty"`
-	TsProvisioned   int    `json:"ts_provisioned,string,omitempty"`
-	Provisioned     int    `json:"provisioned,string,omitempty"`
-	Medias          Medias `json:"medias,omitempty"`
+	UserID          string     `json:"userid,omitempty"`
+	Username        string     `json:"username,omitempty"`
+	Name            string     `json:"name,omitempty"`
+	Surname         string     `json:"surname,omitempty"`
+	Password        string     `json:"passwd,omitempty"`
+	CurrentPassword string     `json:"current_passwd,omitempty"`
+	Url             string     `json:"url,omitempty"`
+	Autologin       int        `json:"autologin,string,omitempty"`
+	Autologout      string     `json:"autologout,omitempty"`
+	Lang            string     `json:"lang,omitempty"`
+	Refresh         string     `json:"refresh,omitempty"`
+	Theme           string     `json:"theme,omitempty"`
+	AttemptFailed   int        `json:"attempt_failed,string,omitempty"`
+	AttemptIP       string     `json:"attempt_ip,omitempty"`
+	AttemptClock    int        `json:"attempt_clock,string,omitempty"`
+	RowsPerPage     int        `json:"rows_per_page,string,omitempty"`
+	Timezone        string     `json:"timezone,omitempty"`
+	RoleID          string     `json:"roleid,omitempty"`
+	UserDirectoryID string     `json:"userdirectoryid,omitempty"`
+	TsProvisioned   int        `json:"ts_provisioned,string,omitempty"`
+	Provisioned     int        `json:"provisioned,string,omitempty"`
+	Medias          Medias     `json:"medias,omitempty"`
+	UsrGrps         UserGroups `json:"usrgrps,omitempty"`
 
 	// Legacy field for backward compatibility
 	Alias string   `json:"alias,omitempty"`

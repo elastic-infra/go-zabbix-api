@@ -240,6 +240,11 @@ func TestUserWithMedia(t *testing.T) {
 					Period:      "1-7,00:00-24:00",
 				},
 			},
+			UsrGrps: zapi.UserGroups{
+				{
+					GroupID: "7", // Zabbix administrators
+				},
+			},
 		},
 	}
 
@@ -254,10 +259,11 @@ func TestUserWithMedia(t *testing.T) {
 		api.UserDelete([]string{createdUserID})
 	}()
 
-	// Test retrieval with media
+	// Test retrieval with media and user groups
 	retrievedUsers, err := api.UsersGet(zapi.Params{
-		"userids":      []string{createdUserID},
-		"selectMedias": "extend",
+		"userids":       []string{createdUserID},
+		"selectMedias":  "extend",
+		"selectUsrgrps": "extend",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -268,12 +274,15 @@ func TestUserWithMedia(t *testing.T) {
 		return
 	}
 
-	// Note: Media retrieval might be empty if not supported by the test environment
+	// Note: Media and user group retrieval might be empty if not supported by the test environment
 	// This is acceptable as we're testing the structure definition
 	user := retrievedUsers[0]
 	if user.UserID != createdUserID {
 		t.Errorf("Expected user ID %s, got %s", createdUserID, user.UserID)
 	}
+
+	// Note: User groups field should be available even if empty
+	// UsrGrps field existence validates the structure
 }
 
 // Helper function to generate random string for test users
