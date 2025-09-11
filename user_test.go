@@ -256,8 +256,8 @@ func TestUserWithMedia(t *testing.T) {
 
 	// Test retrieval with media
 	retrievedUsers, err := api.UsersGet(zapi.Params{
-		"userids":     []string{createdUserID},
-		"selectMedia": "extend",
+		"userids":      []string{createdUserID},
+		"selectMedias": "extend",
 	})
 	if err != nil {
 		t.Fatal(err)
