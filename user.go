@@ -58,7 +58,7 @@ type User struct {
 type Media struct {
 	MediaID              string      `json:"mediaid,omitempty"`
 	MediaTypeID          string      `json:"mediatypeid"`
-	SendTo               []string    `json:"sendto"`
+	SendTo               interface{} `json:"sendto"`
 	Active               MediaStatus `json:"active,string,omitempty"`
 	Severity             int         `json:"severity,string,omitempty"`
 	Period               string      `json:"period,omitempty"`
