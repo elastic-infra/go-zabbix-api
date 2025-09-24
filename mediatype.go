@@ -15,6 +15,12 @@ const (
 
 // MediaType represents Zabbix media type object
 // https://www.zabbix.com/documentation/current/manual/api/reference/mediatype/object
+//
+// Version compatibility notes:
+// - Zabbix 7.0+ uses MessageFormat field
+// - Zabbix 6.4 and earlier use ContentType field
+// - Both fields are supported for maximum compatibility
+// - Use GetMessageFormat() and SetMessageFormat() methods for version-agnostic access
 type MediaType struct {
 	MediaTypeID        string        `json:"mediatypeid,omitempty"`
 	Type               MediaTypeType `json:"type,string,omitempty"`
@@ -27,6 +33,7 @@ type MediaType struct {
 	MaxAttempts        int           `json:"maxattempts,string,omitempty"`
 	AttemptInterval    string        `json:"attempt_interval,omitempty"`
 	MessageFormat      int           `json:"message_format,string,omitempty"`
+	ContentType        int           `json:"content_type,string,omitempty"` // Legacy field for v6.4 and earlier compatibility
 	Script             string        `json:"script,omitempty"`
 	Timeout            string        `json:"timeout,omitempty"`
 	ProcessTags        int           `json:"process_tags,string,omitempty"`
@@ -48,6 +55,20 @@ type MediaType struct {
 	AccessTokenUpdated int    `json:"access_token_updated,string,omitempty"`
 	AccessExpiresIn    int    `json:"access_expires_in,string,omitempty"`
 	RefreshToken       string `json:"refresh_token,omitempty"`
+}
+
+// GetMessageFormat returns the message format value, preferring MessageFormat over ContentType
+func (mt *MediaType) GetMessageFormat() int {
+	if mt.MessageFormat != 0 {
+		return mt.MessageFormat
+	}
+	return mt.ContentType
+}
+
+// SetMessageFormat sets both MessageFormat and ContentType for maximum compatibility
+func (mt *MediaType) SetMessageFormat(format int) {
+	mt.MessageFormat = format
+	mt.ContentType = format
 }
 
 // MediaTypes is an array of MediaType
