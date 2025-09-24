@@ -302,7 +302,7 @@ func getValidUserGroupID(t *testing.T, api *zapi.API) string {
 	params := zapi.Params{
 		"output": []string{"usrgrpid", "name"},
 	}
-	
+
 	userGroups, err := api.UserGroupsGet(params)
 	if err != nil {
 		// If UserGroupsGet fails, try a direct API call
@@ -312,7 +312,7 @@ func getValidUserGroupID(t *testing.T, api *zapi.API) string {
 			t.Logf("Warning: Could not fetch user groups, using default group ID '7': %v", callErr)
 			return "7" // Default to "Zabbix administrators" group
 		}
-		
+
 		if groups, ok := response.Result.([]interface{}); ok && len(groups) > 0 {
 			if group, ok := groups[0].(map[string]interface{}); ok {
 				if usrgrpid, ok := group["usrgrpid"].(string); ok {
@@ -322,12 +322,12 @@ func getValidUserGroupID(t *testing.T, api *zapi.API) string {
 		}
 		return "7" // Fallback
 	}
-	
+
 	if len(userGroups) == 0 {
 		t.Logf("Warning: No user groups found, using default group ID '7'")
 		return "7"
 	}
-	
+
 	// Return the first available user group ID
 	return userGroups[0].GroupID
 }
