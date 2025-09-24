@@ -127,6 +127,9 @@ func TestUserTypes(t *testing.T) {
 func TestUserCRUD(t *testing.T) {
 	api := testGetAPI(t)
 
+	// Get a valid user group ID for the test
+	userGroupID := getValidUserGroupID(t, api)
+
 	// Test user creation
 	randomSuffix := randomString(8)
 	users := zapi.Users{
@@ -136,6 +139,11 @@ func TestUserCRUD(t *testing.T) {
 			Surname:  "TestSurname",
 			Password: "ComplexPassword123!", // Strong password not containing username
 			RoleID:   "1",                   // User role
+			UsrGrps: zapi.UserGroups{
+				{
+					GroupID: userGroupID, // Required in Zabbix 6.0+
+				},
+			},
 		},
 	}
 
@@ -222,6 +230,9 @@ func TestUserWithMedia(t *testing.T) {
 		t.Skip("No media types found to test")
 	}
 
+	// Get a valid user group ID for the test
+	userGroupID := getValidUserGroupID(t, api)
+
 	// Test user creation with media
 	randomSuffix := randomString(8)
 	users := zapi.Users{
@@ -242,7 +253,7 @@ func TestUserWithMedia(t *testing.T) {
 			},
 			UsrGrps: zapi.UserGroups{
 				{
-					GroupID: "7", // Zabbix administrators
+					GroupID: userGroupID, // Dynamic user group ID
 				},
 			},
 		},
@@ -283,6 +294,42 @@ func TestUserWithMedia(t *testing.T) {
 
 	// Note: User groups field should be available even if empty
 	// UsrGrps field existence validates the structure
+}
+
+// Helper function to get a valid user group ID for testing
+func getValidUserGroupID(t *testing.T, api *zapi.API) string {
+	// Try to get user groups
+	params := zapi.Params{
+		"output": []string{"usrgrpid", "name"},
+	}
+	
+	userGroups, err := api.UserGroupsGet(params)
+	if err != nil {
+		// If UserGroupsGet fails, try a direct API call
+		response, callErr := api.CallWithError("usergroup.get", params)
+		if callErr != nil {
+			// Fall back to commonly available group ID
+			t.Logf("Warning: Could not fetch user groups, using default group ID '7': %v", callErr)
+			return "7" // Default to "Zabbix administrators" group
+		}
+		
+		if groups, ok := response.Result.([]interface{}); ok && len(groups) > 0 {
+			if group, ok := groups[0].(map[string]interface{}); ok {
+				if usrgrpid, ok := group["usrgrpid"].(string); ok {
+					return usrgrpid
+				}
+			}
+		}
+		return "7" // Fallback
+	}
+	
+	if len(userGroups) == 0 {
+		t.Logf("Warning: No user groups found, using default group ID '7'")
+		return "7"
+	}
+	
+	// Return the first available user group ID
+	return userGroups[0].GroupID
 }
 
 // Helper function to generate random string for test users
