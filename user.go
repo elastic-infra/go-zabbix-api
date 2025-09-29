@@ -85,7 +85,7 @@ func (api *API) UsersGet(params Params) (res Users, err error) {
 
 // UserCreate Wrapper for user.create
 // https://www.zabbix.com/documentation/current/manual/api/reference/user/create
-func (api *API) UserCreate(users Users) (err error) {
+func (api *API) UsersCreate(users Users) (err error) {
 	response, err := api.CallWithError("user.create", users)
 	if err != nil {
 		return
@@ -101,14 +101,14 @@ func (api *API) UserCreate(users Users) (err error) {
 
 // UserUpdate Wrapper for user.update
 // https://www.zabbix.com/documentation/current/manual/api/reference/user/update
-func (api *API) UserUpdate(users Users) (err error) {
+func (api *API) UsersUpdate(users Users) (err error) {
 	_, err = api.CallWithError("user.update", users)
 	return
 }
 
 // UserDelete Wrapper for user.delete
 // https://www.zabbix.com/documentation/current/manual/api/reference/user/delete
-func (api *API) UserDelete(userids []string) (err error) {
+func (api *API) UsersDeleteByIds(userids []string) (err error) {
 	response, err := api.CallWithError("user.delete", userids)
 	if err != nil {
 		return
@@ -116,7 +116,7 @@ func (api *API) UserDelete(userids []string) (err error) {
 
 	result := response.Result.(map[string]interface{})
 	if deletedids, ok := result["userids"].([]interface{}); ok && len(deletedids) != len(userids) {
-		err = &Error{Code: -32602, Message: "User delete failed", Data: "Could not delete all users"}
+		err = &ExpectedMore{len(userids), len(deletedids)}
 	}
 	return
 }

@@ -60,7 +60,7 @@ type MediaTypes []MediaType
 
 // MediaTypeGet Wrapper for mediatype.get
 // https://www.zabbix.com/documentation/current/manual/api/reference/mediatype/get
-func (api *API) MediaTypeGet(params Params) (res MediaTypes, err error) {
+func (api *API) MediaTypesGet(params Params) (res MediaTypes, err error) {
 	if _, present := params["output"]; !present {
 		params["output"] = "extend"
 	}

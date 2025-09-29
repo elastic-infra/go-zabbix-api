@@ -26,7 +26,7 @@ type Roles []Role
 
 // RoleGet Wrapper for role.get
 // https://www.zabbix.com/documentation/current/manual/api/reference/role/get
-func (api *API) RoleGet(params Params) (res Roles, err error) {
+func (api *API) RolesGet(params Params) (res Roles, err error) {
 	if _, present := params["output"]; !present {
 		params["output"] = "extend"
 	}
