@@ -147,7 +147,7 @@ func TestUserCRUD(t *testing.T) {
 		},
 	}
 
-	err := api.UserCreate(users)
+	err := api.UsersCreate(users)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +181,7 @@ func TestUserCRUD(t *testing.T) {
 		},
 	}
 
-	err = api.UserUpdate(updateUsers)
+	err = api.UsersUpdate(updateUsers)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +201,7 @@ func TestUserCRUD(t *testing.T) {
 	}
 
 	// Test user deletion
-	err = api.UserDelete([]string{createdUserID})
+	err = api.UsersDeleteByIds([]string{createdUserID})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +222,7 @@ func TestUserWithMedia(t *testing.T) {
 	api := testGetAPI(t)
 
 	// Get first available media type
-	mediatypes, err := api.MediaTypeGet(zapi.Params{})
+	mediatypes, err := api.MediaTypesGet(zapi.Params{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +259,7 @@ func TestUserWithMedia(t *testing.T) {
 		},
 	}
 
-	err = api.UserCreate(users)
+	err = api.UsersCreate(users)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,7 +267,7 @@ func TestUserWithMedia(t *testing.T) {
 	createdUserID := users[0].UserID
 	defer func() {
 		// Clean up
-		api.UserDelete([]string{createdUserID})
+		api.UsersDeleteByIds([]string{createdUserID})
 	}()
 
 	// Test retrieval with media and user groups

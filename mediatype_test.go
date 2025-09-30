@@ -10,7 +10,7 @@ func TestMediaTypeGet(t *testing.T) {
 	api := testGetAPI(t)
 
 	params := zapi.Params{}
-	mediatypes, err := api.MediaTypeGet(params)
+	mediatypes, err := api.MediaTypesGet(params)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +22,7 @@ func TestMediaTypeGet(t *testing.T) {
 	params = zapi.Params{
 		"mediatypeids": []string{mediatypes[0].MediaTypeID},
 	}
-	specificMediatypes, err := api.MediaTypeGet(params)
+	specificMediatypes, err := api.MediaTypesGet(params)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func TestMediaTypeGetWithFilter(t *testing.T) {
 			"type": zapi.MediaTypeEmail,
 		},
 	}
-	mediatypes, err := api.MediaTypeGet(params)
+	mediatypes, err := api.MediaTypesGet(params)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -10,7 +10,7 @@ func TestRoleGet(t *testing.T) {
 	api := testGetAPI(t)
 
 	params := zapi.Params{}
-	roles, err := api.RoleGet(params)
+	roles, err := api.RolesGet(params)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +22,7 @@ func TestRoleGet(t *testing.T) {
 	params = zapi.Params{
 		"roleids": []string{roles[0].RoleID},
 	}
-	specificRoles, err := api.RoleGet(params)
+	specificRoles, err := api.RolesGet(params)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func TestRoleGetWithFilter(t *testing.T) {
 			"type": zapi.RoleTypeUser,
 		},
 	}
-	roles, err := api.RoleGet(params)
+	roles, err := api.RolesGet(params)
 	if err != nil {
 		t.Fatal(err)
 	}
